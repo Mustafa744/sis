@@ -13,32 +13,37 @@ features = []
 img_paths = []
 for feature_path in Path("./static/feature").glob("*.npy"):
     features.append(np.load(feature_path))
-    img_paths.append(Path("./static/img") / (feature_path.stem + ".jpg"))
+    img_paths.append(Path("./static/img") / (feature_path.stem + ".JPG"))
 features = np.array(features)
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/", methods=["GET", "POST"])
 def index():
-    if request.method == 'POST':
-        file = request.files['query_img']
+    if request.method == "POST":
+        file = request.files["query_img"]
 
         # Save query image
         img = Image.open(file.stream)  # PIL image
-        uploaded_img_path = "static/uploaded/" + datetime.now().isoformat().replace(":", ".") + "_" + file.filename
+        uploaded_img_path = (
+            "static/uploaded/"
+            + datetime.now().isoformat().replace(":", ".")
+            + "_"
+            + file.filename
+        )
         img.save(uploaded_img_path)
 
         # Run search
         query = fe.extract(img)
-        dists = np.linalg.norm(features-query, axis=1)  # L2 distances to features
-        ids = np.argsort(dists)[:30]  # Top 30 results
+        dists = np.linalg.norm(features - query, axis=1)  # L2 distances to features
+        ids = np.argsort(dists)[:5]  # Top 30 results
         scores = [(dists[id], img_paths[id]) for id in ids]
 
-        return render_template('index.html',
-                               query_path=uploaded_img_path,
-                               scores=scores)
+        return render_template(
+            "index.html", query_path=uploaded_img_path, scores=scores
+        )
     else:
-        return render_template('index.html')
+        return render_template("index.html")
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     app.run("0.0.0.0")
