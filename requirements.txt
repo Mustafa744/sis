@@ -1,3 +1,4 @@
 Pillow
 Flask
 tensorflow-cpu>=2.0.0
+gunicorn
